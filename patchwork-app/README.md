@@ -1,3 +1,14 @@
+---
+title: Patchwork
+emoji: 🧵
+colorFrom: green
+colorTo: yellow
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Make useful things from what you already own.
+---
+
 # Patchwork — web app
 
 **A second life starts here.** Patchwork is a resource-reuse app: record what you own, and it helps you make, repair and improve things with it.

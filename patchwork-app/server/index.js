@@ -55,7 +55,9 @@ function startSession(res, userId, remember) {
   const days = remember ? 30 : 1;
   db.prepare(`INSERT INTO sessions (token,user_id,expires_at) VALUES (?,?,datetime('now', ?))`).run(token, userId, `+${days} days`);
   res.cookie(SESSION_COOKIE, token, {
-    httpOnly: true, sameSite: 'lax', secure: isProd, path: '/',
+    // Production (e.g. Hugging Face Spaces) is shown inside an iframe on another site,
+    // so the cookie must be SameSite=None (which requires Secure / HTTPS).
+    httpOnly: true, sameSite: isProd ? 'none' : 'lax', secure: isProd, partitioned: isProd, path: '/',
     ...(remember ? { maxAge: days * 864e5 } : {}),
   });
 }
@@ -132,7 +134,7 @@ api.post('/auth/login', (req, res) => {
 api.post('/auth/logout', (req, res) => {
   const token = req.cookies[SESSION_COOKIE];
   if (token) db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
-  res.clearCookie(SESSION_COOKIE, { path: '/' });
+  res.clearCookie(SESSION_COOKIE, { path: '/', sameSite: isProd ? 'none' : 'lax', secure: isProd, partitioned: isProd });
   res.json({ ok: true });
 });
 

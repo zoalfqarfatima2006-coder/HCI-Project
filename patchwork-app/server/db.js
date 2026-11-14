@@ -1,11 +1,13 @@
 // SQLite database (Node's built-in node:sqlite — no native build step).
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync } from 'node:fs';
+import { accessSync, constants, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-export const DB_PATH = process.env.PATCHWORK_DB || join(here, '..', 'data', 'patchwork.db');
+// Hugging Face persistent storage mounts at /data; use it when present so data survives restarts.
+const hfData = (() => { try { accessSync('/data', constants.W_OK); return '/data/patchwork.db'; } catch { return null; } })();
+export const DB_PATH = process.env.PATCHWORK_DB || hfData || join(here, '..', 'data', 'patchwork.db');
 mkdirSync(dirname(DB_PATH), { recursive: true });
 
 export const db = new DatabaseSync(DB_PATH);
