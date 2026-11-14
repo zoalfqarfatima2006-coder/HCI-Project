@@ -1,0 +1,14 @@
+# dependencies & builds
+node_modules/
+dist/
+
+# local database (recreated by `npm run seed` / first start)
+patchwork-app/data/
+
+# packaged plugin (rebuild from figma-plugin/)
+*.zip
+
+# local tooling
+.claude/
+*.log
+.DS_Store
