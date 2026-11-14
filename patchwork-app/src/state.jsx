@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, startTransition, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
 
 // ---------- auth ----------
@@ -15,7 +15,9 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await api.post('/auth/logout').catch(() => {});
     sessionStorage.removeItem('pw_journey');
-    setUser(null);
+    // Router navigations are transitions; clearing the user in a transition too means the
+    // caller's navigate('/') and the sign-out commit together (no bounce to /login).
+    startTransition(() => setUser(null));
   }, []);
 
   // Apply accessibility settings to the whole page.

@@ -1,5 +1,6 @@
 // Matching engine: compares an idea's materials with a user's resources.
-import { json } from './db.js';
+// Pure JS with no Node imports, so the browser-only (static) build can reuse it.
+const json = (s, fallback) => { if (typeof s !== 'string') return s ?? fallback; try { return JSON.parse(s); } catch { return fallback; } };
 
 export function hydrateIdea(row) {
   if (!row) return null;

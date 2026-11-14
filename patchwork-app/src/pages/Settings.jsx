@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { startTransition, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth, useToast } from '../state.jsx';
@@ -147,18 +147,29 @@ export function PrivacySettings() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
+  // Works for both the server build and the browser-only build.
+  async function downloadData() {
+    try {
+      const data = await api.get('/me/export');
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: 'patchwork-data.json' });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setError(e); }
+  }
+
   async function deleteAccount() {
     setError(null);
-    try { await api.del('/me', { password }); navigate('/'); setUser(null); } catch (e) { setError(e); }
+    try { await api.del('/me', { password }); navigate('/'); startTransition(() => setUser(null)); } catch (e) { setError(e); }
   }
   return (
     <>
       <SubHeader title="Privacy and account" sub="Your data stays in your Patchwork workspace." />
       <div className="rows">
-        <a className="row" href="/api/me/export" download>
+        <button className="row" onClick={downloadData}>
           <span><span className="row-title">Download my data</span><br /><span className="muted small">Resources, projects, goals and saved ideas as JSON.</span></span>
           <span className="row-aside">Download →</span>
-        </a>
+        </button>
         <button className="row" onClick={() => setOpen(true)}>
           <span><span className="row-title" style={{ color: 'var(--danger)' }}>Delete account</span><br /><span className="muted small">Permanently removes your account and everything in it.</span></span>
           <span className="row-aside">Delete →</span>

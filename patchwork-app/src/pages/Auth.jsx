@@ -112,10 +112,11 @@ export function Login() {
 export function Forgot() {
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState(null);
+  const [resetPath, setResetPath] = useState(null);
   const [error, setError] = useState(null);
   async function submit(e) {
     e.preventDefault(); setError(null);
-    try { setMsg((await api.post('/auth/forgot', { email })).message); } catch (err) { setError(err); }
+    try { const r = await api.post('/auth/forgot', { email }); setMsg(r.message); setResetPath(r.resetPath || null); } catch (err) { setError(err); }
   }
   return (
     <form onSubmit={submit} noValidate>
@@ -123,7 +124,7 @@ export function Forgot() {
       <div className="form">
         <Field label="Email address" id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         <ErrorBox error={error} />
-        {msg && <div className="success-box">{msg}</div>}
+        {msg && <div className="success-box">{msg}{resetPath && <> <Link className="link" to={resetPath}>Reset my password</Link></>}</div>}
         <p className="small muted" style={{ marginTop: 16 }}><Link className="link" to="/login">Back to log in</Link></p>
       </div>
       <Footer><button className="btn">Send reset link</button></Footer>

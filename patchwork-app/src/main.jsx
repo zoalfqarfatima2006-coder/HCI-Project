@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
 import '@fontsource/lora/500.css';
 import '@fontsource/lora/600.css';
 import '@fontsource/dm-sans/400.css';
@@ -10,10 +10,14 @@ import '@fontsource/dm-sans/700.css';
 import './styles.css';
 import App from './App.jsx';
 import { AuthProvider, JourneyProvider, ToastProvider } from './state.jsx';
+import { IS_STATIC } from './api.js';
+
+// Static hosts can't route deep links to index.html, so the static build uses #/ URLs.
+const Router = IS_STATIC ? HashRouter : BrowserRouter;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <ToastProvider>
           <JourneyProvider>
@@ -21,6 +25,6 @@ createRoot(document.getElementById('root')).render(
           </JourneyProvider>
         </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   </StrictMode>,
 );

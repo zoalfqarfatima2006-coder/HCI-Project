@@ -42,6 +42,13 @@ You can also create your own account on the Sign up page.
 
 The database file is `data/patchwork.db`. Set `PATCHWORK_DB=/path/file.db` to use another file.
 
+## Browser-only build (free static hosting)
+
+`npm run build:static` builds a version with **no server**. It outputs `dist-static/`, which is served live at
+https://huggingface.co/spaces/FatimaZoal/HCI-Project. The same API runs inside the browser (`src/localApi.js`),
+using the same matching engine and catalog, and data is saved in that browser's localStorage. Pages use `#/` addresses.
+Each visitor has their own data on their own device. To preview it locally, run `npm run dev:static`.
+
 ## Screen → route map
 
 | # | Screen | Route |

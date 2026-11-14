@@ -3,7 +3,16 @@ export class ApiError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 
+// Static build (VITE_STATIC=1): no server — the API runs in the browser with localStorage.
+export const IS_STATIC = !!import.meta.env.VITE_STATIC;
+let localApi = null;
+
 async function request(method, path, body) {
+  if (IS_STATIC) {
+    localApi ||= await import('./localApi.js');
+    try { return await localApi.localRequest(method, path, body); }
+    catch (e) { throw new ApiError(e.status || 500, e.message || 'Something went wrong.'); }
+  }
   let res;
   try {
     res = await fetch(`/api${path}`, {

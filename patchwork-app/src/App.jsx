@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './state.jsx';
 import Layout from './components/Layout.jsx';
 import { StatePanel } from './components/ui.jsx';
@@ -86,7 +86,7 @@ export default function App() {
         <Route path="/settings/privacy" element={P(<PrivacySettings />)} />
         <Route path="/settings/help" element={P(<HelpSupport />)} />
 
-        <Route path="*" element={<StatePanel kind="error" title="Page not found" text="That page doesn't exist. Your work is safe." action={<a className="btn" href="/home">Back to dashboard</a>} />} />
+        <Route path="*" element={<StatePanel kind="error" title="Page not found" text="That page doesn't exist. Your work is safe." action={<Link className="btn" to="/home">Back to dashboard</Link>} />} />
       </Route>
     </Routes>
   );
