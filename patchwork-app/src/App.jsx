@@ -10,6 +10,7 @@ import { IdeaDetails, SavedIdeas } from './pages/Ideas.jsx';
 import { DescribeGoal, MatchResources, CompareSolutions, AdaptMaterials } from './pages/JourneyB.jsx';
 import { MyProjects, ProjectPlanner, MakingGuide, ProjectCompletion } from './pages/Projects.jsx';
 import { InspirationShelf, CommunityStory, PersonalImpact } from './pages/Inspiration.jsx';
+import { StudioHome, StudioEditor } from './pages/Studio.jsx';
 import { AccountSettings, ProfileSettings, NotificationSettings, AccessibilitySettings, PrivacySettings, HelpSupport } from './pages/Settings.jsx';
 
 function RequireAuth({ children }) {
@@ -77,6 +78,11 @@ export default function App() {
         <Route path="/inspiration" element={P(<InspirationShelf />)} />
         <Route path="/inspiration/:id" element={P(<CommunityStory />)} />
         <Route path="/impact" element={P(<PersonalImpact />)} />
+
+        {/* 2D patchwork design studio */}
+        <Route path="/studio" element={P(<StudioHome />)} />
+        <Route path="/studio/new" element={P(<StudioEditor key="new" />)} />
+        <Route path="/studio/:id" element={P(<StudioEditor />)} />
 
         {/* 26 Settings */}
         <Route path="/settings" element={P(<AccountSettings />)} />

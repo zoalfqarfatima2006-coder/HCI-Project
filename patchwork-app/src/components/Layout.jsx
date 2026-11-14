@@ -8,6 +8,7 @@ const NAV = [
   ['/saved', 'Saved ideas'],
   ['/projects', 'My projects'],
   ['/inspiration', 'Inspiration'],
+  ['/studio', 'Design studio'],
   ['/settings', 'Settings'],
 ];
 

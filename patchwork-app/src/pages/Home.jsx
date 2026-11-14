@@ -27,6 +27,9 @@ export default function Home() {
               <Card title="What can I make?" desc="Choose resources and discover ideas." to="/make" />
               <Card title="I have a goal" desc="Describe an outcome and compare routes." to="/goal" />
             </div>
+            <div className="grid two" style={{ marginTop: 34 }}>
+              <Card title="Design studio" desc="Plan a 2D patchwork — try materials, colours and layouts before you cut." to="/studio" tone="sun" />
+            </div>
             {d.recentProjects.length > 0 && (
               <>
                 <h2 className="section-title">Pick up where you left off</h2>

@@ -67,6 +67,12 @@ export function IdeaDetails() {
                 </li>
               ))}
             </ol>
+            {['fabric-wall-art', 'patch-bag'].includes(idea.id) && (
+              <div className="callout" style={{ background: 'var(--sage)', borderColor: 'var(--green)' }}>
+                <strong>Plan the look first:</strong> try fabrics, colours and layouts in the{' '}
+                <Link className="link" to="/studio/new?template=herb-garden">Design studio</Link>.
+              </div>
+            )}
             {story && <p className="small" style={{ marginTop: 22 }}>Community story: <Link className="link" to={`/inspiration/${story.id}`}>{story.title}</Link></p>}
             <ErrorBox error={error} />
             <Footer>

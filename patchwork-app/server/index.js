@@ -10,6 +10,7 @@ import { db, json, tx } from './db.js';
 import { seed } from './seed.js';
 import { hydrateIdea, matchIdea, discover, matchGoal } from './matching.js';
 import { INSPIRATION_CATEGORIES } from './catalog.js';
+import { cleanDesign } from './designs.js';
 
 await seed();
 
@@ -233,6 +234,7 @@ api.get('/me/export', (req, res) => {
     savedIdeas: [...savedSet(uid)],
     goals: db.prepare('SELECT * FROM goals WHERE user_id = ?').all(uid),
     projects: db.prepare('SELECT * FROM projects WHERE user_id = ?').all(uid).map(projectView),
+    designs: db.prepare('SELECT * FROM designs WHERE user_id = ?').all(uid).map((d) => ({ ...d, composition: json(d.composition, null), variations: json(d.variations, []) })),
   });
 });
 
@@ -456,6 +458,43 @@ api.post('/projects/:id/complete', (req, res) => {
 api.delete('/projects/:id', (req, res) => {
   const p = ownProject(req);
   db.prepare('DELETE FROM projects WHERE id = ?').run(p.id);
+  res.json({ ok: true });
+});
+
+// ---------- 2D design studio ----------
+const designView = (d) => ({
+  id: d.id, name: d.name, composition: json(d.composition, null), variations: json(d.variations, []),
+  createdAt: d.created_at, updatedAt: d.updated_at,
+});
+function designBody(body) {
+  try { return cleanDesign(body); } catch (e) { fail(400, e.message); }
+}
+function ownDesign(req) {
+  const d = db.prepare('SELECT * FROM designs WHERE id = ? AND user_id = ?').get(Number(req.params.id), req.user.id);
+  if (!d) fail(404, 'Design not found.');
+  return d;
+}
+
+api.get('/designs', (req, res) => {
+  res.json({ designs: db.prepare('SELECT * FROM designs WHERE user_id = ? ORDER BY updated_at DESC, id DESC').all(req.user.id).map(designView) });
+});
+api.post('/designs', (req, res) => {
+  const d = designBody(req.body);
+  const { lastInsertRowid } = db.prepare('INSERT INTO designs (user_id,name,composition,variations) VALUES (?,?,?,?)')
+    .run(req.user.id, d.name, JSON.stringify(d.composition), JSON.stringify(d.variations));
+  res.status(201).json({ design: designView(db.prepare('SELECT * FROM designs WHERE id = ?').get(lastInsertRowid)) });
+});
+api.get('/designs/:id', (req, res) => res.json({ design: designView(ownDesign(req)) }));
+api.put('/designs/:id', (req, res) => {
+  const cur = ownDesign(req);
+  const d = designBody(req.body);
+  db.prepare(`UPDATE designs SET name=?, composition=?, variations=?, updated_at=datetime('now') WHERE id=?`)
+    .run(d.name, JSON.stringify(d.composition), JSON.stringify(d.variations), cur.id);
+  res.json({ design: designView(db.prepare('SELECT * FROM designs WHERE id = ?').get(cur.id)) });
+});
+api.delete('/designs/:id', (req, res) => {
+  const d = ownDesign(req);
+  db.prepare('DELETE FROM designs WHERE id = ?').run(d.id);
   res.json({ ok: true });
 });
 

@@ -71,6 +71,7 @@ Each visitor has their own data on their own device. To preview it locally, run 
 | 23–24 | Inspiration shelf → community story | `/inspiration`, `/inspiration/:id` |
 | 25 | Personal impact | `/impact` |
 | 26 | Settings (+ profile, notifications, accessibility, privacy, help) | `/settings/*` |
+| — | **Design studio** (2D patchwork customisation) | `/studio`, `/studio/new?template=…`, `/studio/:id` |
 | 27 | Empty resource library | shown when your shelf is empty |
 
 ## How it works
@@ -81,9 +82,20 @@ Each visitor has their own data on their own device. To preview it locally, run 
 - **Impact:** calculated only from completed projects: items reused, skills (categories) explored, and the estimated value of the materials you didn't have to buy.
 - **Accessibility:** reduce motion, higher contrast and text size apply across the whole app and are saved to your account.
 
+## Design studio (2D patchwork)
+
+A 2D workspace for planning a flat patchwork before cutting fabric (`src/pages/Studio.jsx`, `src/studio/PatchCanvas.jsx`, model in `server/designs.js`).
+- **Materials:** 9 fabric textures (cotton, denim, linen, corduroy, felt, gingham, polka dot, floral, stripes), drawn as SVG patterns tinted with each patch's colour.
+- **Colours:** a 14-colour palette plus a custom colour picker. You can apply to one patch, several (Shift-click), or "select all of this material/colour".
+- **Arrange:** drag a patch onto another to swap them, use the arrow buttons, or press Shift + arrow keys. You can also rotate patches, change shape (square, half triangle, circle appliqué, diamond), and resize the grid from 2×2 to 8×8.
+- **Live preview:** every change shows immediately. The "Finished preview" adds seams, quilting stitches and a binding. You can export a PNG.
+- **What-if:** undo/redo, shuffle, colour remix palettes, five templates, and up to 6 saved variations with a side-by-side compare (material counts, colours, identical patches).
+- **Material plan:** patches needed per fabric, matched against your resource shelf.
+- Designs are saved per account (`designs` table / `/api/designs`, also in the browser-only build).
+
 ## Database (SQLite)
 
-`users`, `sessions`, `password_resets`, `resources`, `ideas` (seeded catalogue of 15), `saved_ideas`, `goals`, `projects`, `stories` (seeded community stories). The schema is in `server/db.js`.
+`users`, `sessions`, `password_resets`, `resources`, `ideas` (seeded catalogue of 15), `saved_ideas`, `goals`, `projects`, `designs`, `stories` (seeded community stories). The schema is in `server/db.js`.
 
 ## Security
 

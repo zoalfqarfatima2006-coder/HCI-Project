@@ -99,6 +99,17 @@ CREATE TABLE IF NOT EXISTS projects (
   completed_at   TEXT
 );
 
+-- 2D patchwork designs (Design studio). composition/variations are JSON (see server/designs.js).
+CREATE TABLE IF NOT EXISTS designs (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  composition TEXT NOT NULL,
+  variations  TEXT NOT NULL DEFAULT '[]',
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS stories (
   id        TEXT PRIMARY KEY,
   title     TEXT NOT NULL,

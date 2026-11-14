@@ -11,6 +11,7 @@ export const DEMO_PASSWORD = 'patchwork123';
 export async function seed() {
   const { db, tx } = await import('./db.js');
   const { IDEAS, STORIES } = await import('./catalog.js');
+  const { TEMPLATES } = await import('./designs.js');
 
   tx(() => {
     const up = db.prepare(`INSERT INTO ideas (id,title,summary,category,minutes,difficulty,materials,steps,substitutes,tags,safety)
@@ -58,6 +59,10 @@ export async function seed() {
       JSON.stringify([{ resourceId: r.cotton, name: 'Cotton offcuts', qty: 3 }, { resourceId: r.cardboard, name: 'Cardboard sheets', qty: 1 }]), "datetime('now','-12 days')");
     proj.run(uid, 'jar-pen-holder', 'Jar pen holder', 'completed', JSON.stringify([true, true, true, true]), 0, 0,
       JSON.stringify([{ resourceId: r.jars, name: 'Glass jars', qty: 1 }, { resourceId: r.cotton, name: 'Cotton offcuts', qty: 2 }]), "datetime('now','-5 days')");
+    const herb = TEMPLATES.find((t) => t.key === 'herb-garden').composition;
+    const checker = TEMPLATES.find((t) => t.key === 'checkerboard').composition;
+    db.prepare('INSERT INTO designs (user_id,name,composition,variations) VALUES (?,?,?,?)')
+      .run(uid, 'Kitchen herb quilt', JSON.stringify(herb), JSON.stringify([{ label: 'Checker idea', composition: checker }]));
     db.exec(`UPDATE projects SET completed_at = datetime('now', '-' || (8 - id) || ' days') WHERE status = 'completed'`);
   });
 }

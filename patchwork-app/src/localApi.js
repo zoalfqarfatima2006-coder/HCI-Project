@@ -3,6 +3,7 @@
 // Same matching engine and idea catalogue as the server.
 import { IDEAS, STORIES, INSPIRATION_CATEGORIES } from '../server/catalog.js';
 import { hydrateIdea, matchIdea, discover, matchGoal } from '../server/matching.js';
+import { cleanDesign, TEMPLATES } from '../server/designs.js';
 
 const DB_KEY = 'patchwork_db_v1';
 const SESSION_KEY = 'patchwork_session';
@@ -18,6 +19,7 @@ let db = null;
 function load() {
   if (db) return db;
   try { db = JSON.parse(localStorage.getItem(DB_KEY)); } catch { db = null; }
+  if (db && !db.designs) db.designs = [];
   return db;
 }
 function save() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch { /* storage full or blocked */ } }
@@ -40,7 +42,7 @@ const token = () => hex(crypto.getRandomValues(new Uint8Array(24)));
 // ---------- seed (same sample data as server/seed.js) ----------
 async function ensureSeeded() {
   if (load()) return;
-  db = { seq: {}, users: [], sessions: [], resets: [], resources: [], saved: [], goals: [], projects: [] };
+  db = { seq: {}, users: [], sessions: [], resets: [], resources: [], saved: [], goals: [], projects: [], designs: [] };
   const uid = nextId('users');
   db.users.push({
     id: uid, name: 'Fatima', email: DEMO_EMAIL, password_hash: await hashPassword(DEMO_PASSWORD),
@@ -71,6 +73,12 @@ async function ensureSeeded() {
     [{ resourceId: r.cotton, name: 'Cotton offcuts', qty: 3 }, { resourceId: r.cardboard, name: 'Cardboard sheets', qty: 1 }], 7);
   proj('jar-pen-holder', 'Jar pen holder', 'completed', [true, true, true, true], 0, 0,
     [{ resourceId: r.jars, name: 'Glass jars', qty: 1 }, { resourceId: r.cotton, name: 'Cotton offcuts', qty: 2 }], 6);
+  db.designs.push({
+    id: nextId('designs'), user_id: uid, name: 'Kitchen herb quilt',
+    composition: TEMPLATES.find((t) => t.key === 'herb-garden').composition,
+    variations: [{ label: 'Checker idea', composition: TEMPLATES.find((t) => t.key === 'checkerboard').composition }],
+    created_at: now(-3), updated_at: now(-3),
+  });
   save();
 }
 
@@ -255,11 +263,12 @@ on('PUT', '/me/settings', (b, u) => {
 on('GET', '/me/export', (_b, u) => ({
   exportedAt: new Date().toISOString(), user: publicUser(u), resources: userResources(u.id), savedIdeas: [...savedSet(u.id)],
   goals: db.goals.filter((g) => g.user_id === u.id), projects: db.projects.filter((p) => p.user_id === u.id).map(projectView),
+  designs: db.designs.filter((d) => d.user_id === u.id),
 }));
 on('DELETE', '/me', async (b, u) => {
   const password = str(b?.password, 'Password', { max: 128 });
   if (!(await checkPassword(password, u.password_hash))) fail(400, 'Password is incorrect.');
-  for (const t of ['resources', 'saved', 'goals', 'projects', 'sessions', 'resets']) db[t] = db[t].filter((x) => x.user_id !== u.id);
+  for (const t of ['resources', 'saved', 'goals', 'projects', 'designs', 'sessions', 'resets']) db[t] = db[t].filter((x) => x.user_id !== u.id);
   db.users = db.users.filter((x) => x.id !== u.id);
   endSession();
   return { ok: true };
@@ -425,6 +434,30 @@ on('POST', '/projects/:id/complete', (b, u, p) => {
 on('DELETE', '/projects/:id', (_b, u, p) => {
   const pr = ownProject(u, p.id);
   db.projects = db.projects.filter((x) => x.id !== pr.id);
+  return { ok: true };
+});
+
+// 2D design studio
+const designView = (d) => ({ id: d.id, name: d.name, composition: d.composition, variations: d.variations, createdAt: d.created_at, updatedAt: d.updated_at });
+const designBody = (b) => { try { return cleanDesign(b); } catch (e) { return fail(400, e.message); } };
+const ownDesign = (u, id) => db.designs.find((d) => d.id === Number(id) && d.user_id === u.id) || fail(404, 'Design not found.');
+on('GET', '/designs', (_b, u) => ({
+  designs: db.designs.filter((d) => d.user_id === u.id).sort((a, b) => b.updated_at.localeCompare(a.updated_at) || b.id - a.id).map(designView),
+}));
+on('POST', '/designs', (b, u) => {
+  const d = { id: nextId('designs'), user_id: u.id, ...designBody(b), created_at: now(), updated_at: now() };
+  db.designs.push(d);
+  return { design: designView(d) };
+});
+on('GET', '/designs/:id', (_b, u, p) => ({ design: designView(ownDesign(u, p.id)) }));
+on('PUT', '/designs/:id', (b, u, p) => {
+  const d = ownDesign(u, p.id);
+  Object.assign(d, designBody(b), { updated_at: now() });
+  return { design: designView(d) };
+});
+on('DELETE', '/designs/:id', (_b, u, p) => {
+  const d = ownDesign(u, p.id);
+  db.designs = db.designs.filter((x) => x.id !== d.id);
   return { ok: true };
 });
 
